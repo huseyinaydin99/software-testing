@@ -11,7 +11,11 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-@DataJpaTest
+@DataJpaTest(
+        properties = {
+                "spring.jpa.properties.javax.persistence.validation.mode=none"
+        }
+)
 class CustomerRepositoryTest {
 
     @Autowired
@@ -65,7 +69,7 @@ class CustomerRepositoryTest {
     void itShouldNotSaveCustomerWhenPhoneNumberIsNull() {
         // Given - bizim beklediğimiz değer veya referans.
         UUID id = UUID.randomUUID();
-        Customer customer = new Customer(id, "Alex", null);
+        Customer customer = new Customer(id, "Huseyin", null);
 
         // When - test etmeden önce yapılan işlem.
         // Then - yapılan işlemin beklediğimiz gibi olup olmadığının test edildiği kısım.
