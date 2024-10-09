@@ -70,4 +70,33 @@ class CustomerRegistrationServiceTest {
         Customer customerArgumentCaptorValue = customerArgumentCaptor.getValue();
         assertThat(customerArgumentCaptorValue).isEqualTo(customer); //Yakalanan referans beklenen'e eşit mi?
     }
+	
+	@Test
+    void itShouldNotSaveNewCustomerWhenPhoneNumberIsInvalid() {
+        // Given - belirlenen telefon numarası.
+        String phoneNumber = "000099";
+        Customer customer = new Customer(UUID.randomUUID(), "Huseyin", phoneNumber);
+
+        // ... Müşteri nesnesini sarmalayan istek nesnesi.
+        CustomerRegistrationRequest request = new CustomerRegistrationRequest(customer);
+
+
+        //... Telefon numarasının geçerli olup olamayacağı. Beklenen değer false.
+        given(phoneNumberValidator.test(phoneNumber)).willReturn(false);
+
+        // When - Hata fırlatması bekleniyor çünkü geçersiz bir telefon numarası girildi.
+        assertThatThrownBy(() -> underTest.registerNewCustomer(request))
+                .isInstanceOf(IllegalStateException.class) //beklenen istisna IllegalStateException'dır.
+                .hasMessageContaining("Phone Number " + phoneNumber + " is not valid"); //mesaj bu --<< ifadeyi içeriyor mu?
+
+        // Then
+        then(customerRepository).shouldHaveNoInteractions();
+		/*
+		Mockito ile yazılan bir testte customerRepository nesnesi ile herhangi bir 
+		etkileşim (metod çağrısı, argüman geçişi vb.) olmadığını doğrulamak için kullanılır. 
+		Bu, belirli bir kod parçasının customerRepository üzerinde hiç bir 
+		işlem gerçekleştirmediğini kontrol etmek için yararlıdır, böylece beklenmeyen 
+		veya gereksiz etkileşimlerin olup olmadığını tespit edebilirim.
+		*/
+    }
 }
