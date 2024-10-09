@@ -133,4 +133,31 @@ class CustomerRegistrationServiceTest {
 		Customer türünde bir parametre alıp almadığını kontrol eder.
 		*/
     }
+	
+	@Test
+    void itShouldSaveNewCustomerWhenIdIsNull() {
+        // Given - telefon numarası.
+        String phoneNumber = "000099";
+        Customer customer = new Customer(null, "Huseyin", phoneNumber);
+
+        // ... müşteri nesnesini sarmalayan istek nesnesi.
+        CustomerRegistrationRequest request = new CustomerRegistrationRequest(customer);
+
+        // ... Böyle bir telefon numarası ile veritabanında kayıt var mı? Beklenen Optional boş.
+        given(customerRepository.selectCustomerByPhoneNumber(phoneNumber))
+                .willReturn(Optional.empty());
+
+        //... Telefon numarası doğru formatta mı? Beklenen değer true.
+        given(phoneNumberValidator.test(phoneNumber)).willReturn(true);
+
+        // When - müşteri kaydediliyor.
+        underTest.registerNewCustomer(request);
+
+        // Then - asıl test kısmı.
+        then(customerRepository).should().save(customerArgumentCaptor.capture()); //capture ile customerRepository save metoduna girilen değer ile save metodu çağrılmış mı? Çağrılmışsa testi geçer.
+        Customer customerArgumentCaptorValue = customerArgumentCaptor.getValue(); //capture ile save metoduna girilen değer yakalanıyor.
+        assertThat(customerArgumentCaptorValue)
+                .isEqualToIgnoringGivenFields(customer, "id"); //isEqualToIgnoringGivenFields(customer, "id"): Bu ifade, iki nesnenin diğer tüm alanlarının eşit olup olmadığını kontrol ederken, yalnızca id alanını göz ardı eder.
+        assertThat(customerArgumentCaptorValue.getId()).isNotNull(); //yakalanan customer nesnesi'nin Id'si null mı? Null'sa testi geçer.
+    }
 }
