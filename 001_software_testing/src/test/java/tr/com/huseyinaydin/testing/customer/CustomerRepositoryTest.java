@@ -16,6 +16,18 @@ class CustomerRepositoryTest {
 
     @Autowired
     private CustomerRepository underTest;
+	
+	@Test
+    void itNotShouldSelectCustomerByPhoneNumberWhenNumberDoesNotExists() {
+        // Given - bizim beklediğimiz değer veya referans.
+        String phoneNumber = "0000";
+
+        // When - test etmeden önce yapılan işlem.
+        Optional<Customer> optionalCustomer = underTest.selectCustomerByPhoneNumber(phoneNumber);
+
+        // Then - //Telefon numarasına göre veritabanında müşteri var mı?
+        assertThat(optionalCustomer).isNotPresent();
+    }
 
     @Test
     void itShouldSelectCustomerByPhoneNumber() {
