@@ -60,4 +60,18 @@ class CustomerRepositoryTest {
                 .hasMessageContaining("not-null property references a null or transient value : tr.com.huseyinaydin.testing.customer.Customer.name")
                 .isInstanceOf(DataIntegrityViolationException.class);
     }
+	
+	@Test
+    void itShouldNotSaveCustomerWhenPhoneNumberIsNull() {
+        // Given - bizim beklediğimiz değer veya referans.
+        UUID id = UUID.randomUUID();
+        Customer customer = new Customer(id, "Alex", null);
+
+        // When - test etmeden önce yapılan işlem.
+        // Then - yapılan işlemin beklediğimiz gibi olup olmadığının test edildiği kısım.
+        assertThatThrownBy(() -> underTest.save(customer))
+                .hasMessageContaining("not-null property references a null or transient value : tr.com.huseyinaydin.testing.customer.Customer.phoneNumber")
+                .isInstanceOf(DataIntegrityViolationException.class);
+
+    }
 }
