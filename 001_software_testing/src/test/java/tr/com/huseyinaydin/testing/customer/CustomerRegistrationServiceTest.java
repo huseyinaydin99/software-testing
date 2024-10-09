@@ -99,4 +99,38 @@ class CustomerRegistrationServiceTest {
 		veya gereksiz etkileşimlerin olup olmadığını tespit edebilirim.
 		*/
     }
+	
+	@Test
+    void itShouldThrowWhenPhoneNumberIsTaken() {
+        // Given - Beklenen telefon numarası.
+        String phoneNumber = "000099";
+        Customer customer = new Customer(UUID.randomUUID(), "Huseyin", phoneNumber);
+        Customer customerTwo = new Customer(UUID.randomUUID(), "Ceyda", phoneNumber);
+
+        // ... müşteri nesnesini sarmalayan istek nesnesi.
+        CustomerRegistrationRequest request = new CustomerRegistrationRequest(customer);
+
+        // ... Telefon numarasına göre beklenen her ikinci müşteri kaydı dönüyor mu?
+        given(customerRepository.selectCustomerByPhoneNumber(phoneNumber))
+                .willReturn(Optional.of(customerTwo));
+
+        //... Telefon numarasının geçerliliği testi. Beklenen true.
+        given(phoneNumberValidator.test(phoneNumber)).willReturn(true);
+
+        // When
+        // Then
+        assertThatThrownBy(() -> underTest.registerNewCustomer(request))
+                .isInstanceOf(IllegalStateException.class) //Geçersiz durum istisnası fırlatılıyor mu?
+                .hasMessageContaining(String.format("Telefon numarası [%s] geçersiz.", phoneNumber)); //Hata mesajı beklenen hatayı içeriyor mu?
+
+        // Finally
+        then(customerRepository).should(never()).save(any(Customer.class));
+		/*
+		Bu kod, customerRepository nesnesinin save metodunun hiçbir zaman çağrılmadığını doğrular.
+		Eğer save metodu, herhangi bir Customer parametresi ile çağrıldıysa, bu test başarısız olur.
+		
+		any(Customer.class) ifadesi, customerRepository nesnesinin save metodunun
+		Customer türünde bir parametre alıp almadığını kontrol eder.
+		*/
+    }
 }
