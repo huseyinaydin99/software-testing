@@ -47,4 +47,17 @@ class CustomerRepositoryTest {
                     assertThat(c).isEqualToComparingFieldByField(customer);
                 });
     }
+	
+	@Test
+    void itShouldNotSaveCustomerWhenNameIsNull() {
+        // Given - bizim beklediğimiz değer veya referans.
+        UUID id = UUID.randomUUID();
+        Customer customer = new Customer(id, null, "0000");
+
+        // When - test etmeden önce yapılan işlem.
+        // Then - yapılan işlemin beklediğimiz gibi olup olmadığının test edildiği kısım.
+        assertThatThrownBy(() -> underTest.save(customer))
+                .hasMessageContaining("not-null property references a null or transient value : tr.com.huseyinaydin.testing.customer.Customer.name")
+                .isInstanceOf(DataIntegrityViolationException.class);
+    }
 }
