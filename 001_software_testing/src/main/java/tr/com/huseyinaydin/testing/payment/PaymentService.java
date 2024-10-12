@@ -60,6 +60,6 @@ public class PaymentService {
 
         paymentRepository.save(paymentRequest.getPayment());
 
-        // 6. TODO: SMS gönderme işlemleri yapıalcak.
+        // 6. TODO: SMS gönderme işlemleri yapılacak.
     }
 }
