@@ -85,4 +85,24 @@ class StripeServiceTest {
 
         //şartlar böyleyse testi geçer.
     }
+
+    @Test
+    void itShouldNotChargeWhenApiThrowsException() throws StripeException {
+        // Given - ödeme öncesi ön hazırlık
+        String cardSource = "1x2x3x";
+        BigDecimal amount = new BigDecimal("15.00");
+        Currency currency = Currency.USD;
+        String description = "Fitre/Sadaka";
+
+        // StripeApi çağrısında bulunulduğunda StripeException istisnası fırlatılsın.
+        StripeException stripeException = mock(StripeException.class); // istisna nesnesi hazırlığı.
+        doThrow(stripeException).when(stripeApi).create(anyMap(), any()); // stripeApi.create metodu çağrıldığında, herhangi bir Map ve herhangi bir nesne ile birlikte stripeException istisnasını fırlatmasını sağlar.
+
+        // When
+        // Then
+        assertThatThrownBy(() -> underTest.chargeCard(cardSource, amount, currency, description))
+                .isInstanceOf(IllegalStateException.class)
+                .hasRootCause(stripeException) //chargeCard metodu çağrıldığında beklenen hata stripeException ise.
+                .hasMessageContaining("Stripe şarjı yapılamadı."); //beklnen hata mesajı "Stripe şarjı yapılamadı." ise.
+    }
 }
