@@ -119,4 +119,41 @@ class PaymentServiceTest {
         // ... bu kodda paymentRepository'nin herhangi bir metodunun çalışmamasını bekliyor. Yani paymentRepository'nin herhangi bir metodu çalışmadıysa testi geçer.
         then(paymentRepository).shouldHaveNoInteractions();
     }
+
+    @Test
+    void itShouldNotChargeCardAndThrowWhenCurrencyNotSupported() {
+        // Given - oluşturulan benzeriz Id hash'i.
+        UUID customerId = UUID.randomUUID();
+
+        // ... sahte Customer objesi dönüyor mu?
+        given(customerRepository.findById(customerId)).willReturn(Optional.of(mock(Customer.class)));
+
+        // ... Türk lirası cnm Euro ile ciklet al. (-:
+        Currency currency = Currency.TL;
+
+        // ... ödeme isteğini sarmalayan ödeme isteği nesnesi.
+        PaymentRequest paymentRequest = new PaymentRequest(
+                new Payment(
+                        null,
+                        null,
+                        new BigDecimal("444.77"),
+                        currency,
+                        "card123xx",
+                        "Yemek parası."
+                )
+        );
+
+        // When - chargeCard metodu IllegalStateException istisnası fırlatıyor mu? Beklenilen hata mesajını içeriyor mu?
+        assertThatThrownBy(() -> underTest.chargeCard(customerId, paymentRequest))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("[" + currency + "] para birimi desteklenmiyor.");
+
+        // Then
+
+        //cardPaymentCharger nesnesinin herhangi bir metodu çalıştırılmış mı?
+        then(cardPaymentCharger).shouldHaveNoInteractions();
+
+        //paymentRepository nesnesinin herhangi bir metodu çalıştırılmış mı?
+        then(paymentRepository).shouldHaveNoInteractions();
+    }
 }
