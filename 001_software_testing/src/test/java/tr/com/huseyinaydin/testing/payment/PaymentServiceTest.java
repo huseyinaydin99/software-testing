@@ -156,4 +156,23 @@ class PaymentServiceTest {
         //paymentRepository nesnesinin herhangi bir metodu çalıştırılmış mı?
         then(paymentRepository).shouldHaveNoInteractions();
     }
+
+    @Test
+    void itShouldNotChargeAndThrowWhenCustomerNotFound() {
+        // Given - olmayan bir Id farz edelim.
+        UUID customerId = UUID.randomUUID();
+
+        // Veritabanında böyle bir müşteri yok.
+        given(customerRepository.findById(customerId)).willReturn(Optional.empty());
+
+        // When
+        // Then
+        assertThatThrownBy(() -> underTest.chargeCard(customerId, new PaymentRequest(new Payment())))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("[" + customerId + "] Id'li müşteri bulunamadı.");
+
+        // ... PaymentCharger not PaymentRepository için metot çağrısının olmaması bekleniyor. Eğer çağrı yoksa testi geçer.
+        then(cardPaymentCharger).shouldHaveNoInteractions();
+        then(paymentRepository).shouldHaveNoInteractions();
+    }
 }
