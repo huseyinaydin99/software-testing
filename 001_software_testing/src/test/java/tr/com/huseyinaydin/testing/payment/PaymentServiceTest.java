@@ -81,4 +81,42 @@ class PaymentServiceTest {
 
         assertThat(paymentArgumentCaptorValue.getCustomerId()).isEqualTo(customerId);
     }
+
+    @Test
+    void itShouldThrowWhenCardIsNotCharged() {
+        // Given
+        UUID customerId = UUID.randomUUID();
+
+        // ... Optional of sahte müşteri objesi üretiyor mu?
+        given(customerRepository.findById(customerId)).willReturn(Optional.of(mock(Customer.class)));
+
+        // ... ödeme nesnesini sarmalayan ödeme isteği nesnesi.
+        PaymentRequest paymentRequest = new PaymentRequest(
+                new Payment(
+                        null,
+                        null,
+                        new BigDecimal("111.91"),
+                        Currency.TL,
+                        "card123xx",
+                        "Harçlık"
+                )
+        );
+
+        // ... kart şarjı yapılıyor mu? Beklenen referans CardPaymentCharge nesnesi false değer tutacak.
+        given(cardPaymentCharger.chargeCard(
+                paymentRequest.getPayment().getSource(),
+                paymentRequest.getPayment().getAmount(),
+                paymentRequest.getPayment().getCurrency(),
+                paymentRequest.getPayment().getDescription()
+        )).willReturn(new CardPaymentCharge(false));
+
+        // When
+        // Then
+        assertThatThrownBy(() -> underTest.chargeCard(customerId, paymentRequest))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("Kart şarjı yapılamadı " + customerId);
+
+        // ... bu kodda paymentRepository'nin herhangi bir metodunun çalışmamasını bekliyor. Yani paymentRepository'nin herhangi bir metodu çalışmadıysa testi geçer.
+        then(paymentRepository).shouldHaveNoInteractions();
+    }
 }
